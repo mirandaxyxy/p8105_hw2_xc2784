@@ -58,12 +58,28 @@ The final resulting dataset has 822 entries and 12 total columns, with year from
 ```{r}
 library(readxl)
 ```
-Read and clean the Mr. Trash Wheel sheet
+Read and clean the 3 Trash Wheel sheet
 ```{r}
-ts_df = read_excel("./202509 Trash Wheel Collection Data.xlsx",sheet = "Mr. Trash Wheel",
+mr_df = read_excel("./202509 Trash Wheel Collection Data.xlsx",sheet = "Mr. Trash Wheel",
                    range = "A2:N709",col_names = TRUE) %>% 
   janitor::clean_names() %>% 
   filter(!is.na(dumpster)) %>%
-  mutate(sports_balls = as.integer(round(sports_balls, 0)))
+  mutate(sports_balls = as.integer(round(sports_balls, 0)),trash_wheel="Mr. Trash Wheel")
+```
+Read and clean the Professor Trash Wheel
+```{r}
+professor_df = read_excel("./202509 Trash Wheel Collection Data.xlsx",sheet = "Professor Trash Wheel",
+                   range = "A2:M134",col_names = TRUE) %>% 
+  janitor::clean_names() %>% 
+  filter(!is.na(dumpster)) %>% 
+  mutate(trash_wheel="Professor Trash Wheel")
+```
+Read and clean the Gwynns Falls Trash Wheel
+```{r}
+gwynns_df = read_excel("./202509 Trash Wheel Collection Data.xlsx",sheet = "Gwynns Falls Trash Wheel",
+                   range = "A2:L351",col_names = TRUE) %>% 
+  janitor::clean_names() %>% 
+  filter(!is.na(dumpster)) %>% 
+  mutate(trash_wheel = "Gwynns Falls Trash Wheel")
 ```
 
