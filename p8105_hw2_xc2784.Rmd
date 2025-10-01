@@ -102,7 +102,10 @@ Import zori data
 zori_df = read_csv(file = "./zillow_data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv",show_col_types = FALSE) %>% 
   janitor::clean_names() %>% 
   rename(zip_code = region_name ) %>% 
-  select(-state_name)
+  select(-state_name, -county_name) %>% 
+  pivot_longer(cols = starts_with("x"),
+               names_to = "date",
+               values_to = "zori")
 ```
 
 Import zipcode data
@@ -110,3 +113,29 @@ Import zipcode data
 zip_df = read_csv(file = "./zillow_data/Zip Codes.csv",show_col_types = FALSE) %>% 
   janitor::clean_names() 
 ```
+
+```{r}
+tidy_df = left_join(zip_df,zori_df, by = "zip_code",relationship = "many-to-many") %>% 
+  select(region_id, zip_code,state,county,city,neighborhood,date,zori,everything()) %>% 
+  arrange(zip_code)
+```
+
+The resulting tidy dataset has 17,687 observations and 15 columns. It includes `r n_distinct(tidy_df$zip_code)` unique ZIP codes and 
+`r n_distinct(tidy_df$neighborhood)` unique neighborhoods.
+
+```{r}
+missing_zip <- setdiff(zip_df$zip_code, zori_df$zip_code)
+n_distinct(missing_zip)
+```
+
+There are `r n_distinct(setdiff(zip_df$zip_code, zori_df$zip_code))`ZIP codes appear in the ZIP code dataset but not in the Zillow Rental Price dataset. These missing ZIP codes are often areas with limited or no residential housing, such as industrial zones or areas dominated by openspace For example, 10464 is located in southeast New York and is Primarily City Island, resulting in very few housing. Also,some newly assigned zipcodes may not have sufficient rental listings for Zillow to provide reliable estimates, thus being excluded from dataset.
+
+```{r}
+
+```
+
+
+Rental prices fluctuated dramatically during the COVID-19 pandemic. For all available ZIP codes, compare rental prices in January 2021 to prices in January 2020. Make a table that shows the 10 ZIP codes (along with the borough and neighborhood) with largest drop in price from January 2020 to 2021. Comment.
+
+
+
