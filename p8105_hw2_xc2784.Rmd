@@ -12,10 +12,11 @@ library(tidyverse)
 ## Problem 1
 First, clean the data in pols-month.csv
 ```{r}
-pols_df = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv") %>% 
+pols_df = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv",show_col_types = FALSE) %>% 
   janitor::clean_names() %>% 
   separate(mon, into = c("year","month","day"), sep = "-") %>% 
-  mutate(month = month.abb[as.integer(month)],
+  mutate(year = as.integer(year), 
+         month = month.abb[as.integer(month)],
          president = case_when(
       prez_gop == 1 ~ "gop",
       prez_dem == 1 ~ "dem"
@@ -24,17 +25,30 @@ pols_df = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv") %>%
 ```
 Second, clean the data in snp.csv 
 ```{r}
-snp_df = read_csv(file = "./fivethirtyeight_datasets/snp.csv") %>% 
+snp_df = read_csv(file = "./fivethirtyeight_datasets/snp.csv",show_col_types = FALSE) %>% 
   janitor::clean_names() %>% 
   separate(date, into = c("month","day","year"), sep = "/") %>% 
-  mutate(month = month.abb[as.integer(month)],year = as.integer(year)+2000) %>% 
+  mutate(month = month.abb[as.integer(month)],
+         year = as.integer(year),  
+         year = ifelse(year < 30, year + 2000, year + 1900)) %>% 
   select(year, month, everything())
+
 ```
 
 Third, tidy the unemployment data
 ```{r}
-unemployment_df = read_csv(file = "./fivethirtyeight_datasets/unemployment.csv") %>% 
+unemployment_df = read_csv(file = "./fivethirtyeight_datasets/unemployment.csv", show_col_types = FALSE) %>% 
   pivot_longer(Jan:Dec,names_to = "month",values_to = "unemployment") %>%
   janitor::clean_names() 
 ```
 
+Join the datasets by merging snp into pols, and merging unemployment into the result.
+```{r}
+result_df = left_join(pols_df,snp_df, by = c("year","month")) %>% 
+  left_join(unemployment_df, by = c("year","month"))
+colnames(result_df)
+```
+pols contains information about the number of national politicians who are democratic or republican from 1947 to 2015.
+snp contains information about the closing values of the S&P stock index on the associated date, from 1950 to 2015.
+unemployment contains information about percentage of unemployment in the month, from 1948 to 2015.
+The final resulting dataset has 822 entries and 12 total columns, with year from 1947 to 2015. Key variable names:  "year"         "month"        "gov_gop"      "sen_gop"      "rep_gop"     "gov_dem"      "sen_dem"      "rep_dem"      "president"    "day"  "close"        "unemployment"
