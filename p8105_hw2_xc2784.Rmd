@@ -10,3 +10,17 @@ library(tidyverse)
 
 
 ## Problem 1
+First, clean the data in pols-month.csv
+```{r}
+pols_df = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(mon, into = c("year","month","day"), sep = "-") %>% 
+  mutate(month = month.name[as.integer(month)],
+         president = case_when(
+      prez_gop == 1 ~ "gop",
+      prez_dem == 1 ~ "dem"
+    )) %>%
+  select(-day,-prez_gop,-prez_dem)
+```
+
+
