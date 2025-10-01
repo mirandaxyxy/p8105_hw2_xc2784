@@ -64,7 +64,7 @@ mr_df = read_excel("./202509 Trash Wheel Collection Data.xlsx",sheet = "Mr. Tras
                    range = "A2:N709",col_names = TRUE) %>% 
   janitor::clean_names() %>% 
   filter(!is.na(dumpster)) %>%
-  mutate(sports_balls = as.integer(round(sports_balls, 0)),trash_wheel="Mr. Trash Wheel")
+  mutate(year = as.integer(year),sports_balls = as.integer(round(sports_balls, 0)),trash_wheel="Mr. Trash Wheel")
 ```
 Read and clean the Professor Trash Wheel
 ```{r}
@@ -72,7 +72,7 @@ professor_df = read_excel("./202509 Trash Wheel Collection Data.xlsx",sheet = "P
                    range = "A2:M134",col_names = TRUE) %>% 
   janitor::clean_names() %>% 
   filter(!is.na(dumpster)) %>% 
-  mutate(trash_wheel="Professor Trash Wheel")
+  mutate(year = as.integer(year), trash_wheel="Professor Trash Wheel")
 ```
 Read and clean the Gwynns Falls Trash Wheel
 ```{r}
@@ -80,6 +80,20 @@ gwynns_df = read_excel("./202509 Trash Wheel Collection Data.xlsx",sheet = "Gwyn
                    range = "A2:L351",col_names = TRUE) %>% 
   janitor::clean_names() %>% 
   filter(!is.na(dumpster)) %>% 
-  mutate(trash_wheel = "Gwynns Falls Trash Wheel")
+  mutate(year = as.integer(year), trash_wheel = "Gwynns Falls Trash Wheel")
 ```
+Bind 3 datasets
+```{r}
+ts_final = 
+  bind_rows(mr_df, professor_df, gwynns_df) %>% 
+  janitor::clean_names() %>% 
+  select(trash_wheel, everything())
+colnames(ts_final)
+```
+The Trash Wheel dataset provides a record of the waste collected by different trash wheels in Baltimore. 
+The resulting dataset has 1,188 observations and 15 total columns.The key variables include  "trash_wheel"        "dumpster"           "month"              "year"               "date"               "weight_tons"        "volume_cubic_yards" "plastic_bottles"    "polystyrene"        "cigarette_butts"    "glass_bottles"      "plastic_bags"       "wrappers"           "sports_balls"       "homes_powered" .
+
+For the available data, Professor Trash Wheel has collected a total of `r sum(professor_df$weight_tons, na.rm = TRUE)` tons of trash. 
+Gwynnda collected `r sum(gwynns_df$cigarette_butts[gwynns_df$year == 2022 & gwynns_df$month == "June"], na.rm = TRUE)` cigarette butts in June 2022.
+
 
