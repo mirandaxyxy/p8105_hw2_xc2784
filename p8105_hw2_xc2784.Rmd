@@ -15,12 +15,19 @@ First, clean the data in pols-month.csv
 pols_df = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv") %>% 
   janitor::clean_names() %>% 
   separate(mon, into = c("year","month","day"), sep = "-") %>% 
-  mutate(month = month.name[as.integer(month)],
+  mutate(month = month.abb[as.integer(month)],
          president = case_when(
       prez_gop == 1 ~ "gop",
       prez_dem == 1 ~ "dem"
     )) %>%
   select(-day,-prez_gop,-prez_dem)
 ```
+Second, clean the data in snp.csv 
+```{r}
+unemployment_df = read_csv(file = "./fivethirtyeight_datasets/unemployment.csv") %>% 
+  pivot_longer(Jan:Dec,names_to = "month",values_to = "unemployment") %>%
+  janitor::clean_names() %>% 
+  select(year, month, everything())
 
+```
 
