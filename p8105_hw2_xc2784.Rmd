@@ -119,18 +119,23 @@ zip_df = read_csv(file = "./zillow_data/Zip Codes.csv",show_col_types = FALSE) %
   mutate(borough = recode(borough,
                      "New York" = "Manhattan",
                      "Kings" = "Brooklyn",
-                     "Richmond" = "Staten Island")
-  )
+                     "Richmond" = "Staten Island")) 
 ```
 
 Join two datasets and reorder
 ```{r}
-tidy_df = left_join(zori_df,zip_df, by = "zip_code",relationship = "many-to-many") %>% 
+zip_df_unique = zip_df %>% 
+  distinct(zip_code, .keep_all = TRUE)
+
+tidy_df = left_join(zori_df,zip_df_unique, by = "zip_code") %>% distinct() %>%  
   select(region_id, zip_code,state,city,borough,neighborhood,date,zori,everything()) %>% 
   arrange(zip_code)
+
+tidy_df
+
 ```
 
-The resulting tidy dataset has 17,516 observations and 15 columns. It includes `r n_distinct(tidy_df$zip_code)` unique ZIP codes and 
+The resulting tidy dataset has 17,284 observations and 15 columns. It includes `r n_distinct(tidy_df$zip_code)` unique ZIP codes and 
 `r n_distinct(tidy_df$neighborhood)` unique neighborhoods.
 
 ```{r}
@@ -149,6 +154,8 @@ drop <- tidy_df %>%
   mutate(diff = zori_2021- zori_2020) %>% 
   arrange(diff) %>% 
   head(10)
+
+drop
 ```
 
 The table shows the 10 ZIP codes (along with the borough and neighborhood) with largest drop in price from January 2020 to 2021. All 10 of them comes from Manhattan. The data shows that ZIP codes in Manhattan experienced the largest rental price drop from January 2020 to 2021, particularly in areas such as Lower Manhattan.
