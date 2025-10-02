@@ -10,7 +10,7 @@ library(tidyverse)
 
 
 ## Problem 1
-First, clean the data in pols-month.csv
+First, import then clean the data in pols-month.csv
 ```{r}
 pols_df = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv",show_col_types = FALSE) %>% 
   janitor::clean_names() %>% 
@@ -23,19 +23,18 @@ pols_df = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv",show_col_t
     )) %>%
   select(-day,-prez_gop,-prez_dem)
 ```
-Second, clean the data in snp.csv 
+Second, import then clean the data in snp.csv 
 ```{r}
 snp_df = read_csv(file = "./fivethirtyeight_datasets/snp.csv",show_col_types = FALSE) %>% 
   janitor::clean_names() %>% 
-  separate(date, into = c("month","day","year"), sep = "/") %>% 
-  mutate(month = month.abb[as.integer(month)],
-         year = as.integer(year),  
-         year = ifelse(year < 30, year + 2000, year + 1900)) %>% 
+  mutate(date = mdy(date),
+         year = year(date), 
+         month = month(date,label = TRUE,abbr=TRUE),
+         day = day(date))  %>% 
   select(year, month, everything())
-
 ```
 
-Third, tidy the unemployment data
+Third, import then tidy the unemployment data
 ```{r}
 unemployment_df = read_csv(file = "./fivethirtyeight_datasets/unemployment.csv", show_col_types = FALSE) %>% 
   pivot_longer(Jan:Dec,names_to = "month",values_to = "unemployment") %>%
@@ -48,23 +47,24 @@ result_df = left_join(pols_df,snp_df, by = c("year","month")) %>%
   left_join(unemployment_df, by = c("year","month"))
 colnames(result_df)
 ```
-pols contains information about the number of national politicians who are democratic or republican from 1947 to 2015.
+pols contains information about the number of national politicians who are democratic or republican in each month, from 1947 to 2015.
 snp contains information about the closing values of the S&P stock index on the associated date, from 1950 to 2015.
 unemployment contains information about percentage of unemployment in the month, from 1948 to 2015.
-The final resulting dataset has 822 entries and 12 total columns, with year from 1947 to 2015. Key variable names:  "year"         "month"        "gov_gop"      "sen_gop"      "rep_gop"     "gov_dem"      "sen_dem"      "rep_dem"      "president"    "day"  "close"        "unemployment"
+
+The final resulting dataset has 822 entries and 12 total columns, with year from 1947 to 2015. Key variable names:  "year"         "month"         "president"  "close"        "unemployment".
 
 ## Problem 2
 
 ```{r}
 library(readxl)
 ```
-Read and clean the 3 Trash Wheel sheet
+Read and clean the Mr.Trash Wheel sheet
 ```{r}
 mr_df = read_excel("./202509 Trash Wheel Collection Data.xlsx",sheet = "Mr. Trash Wheel",
                    range = "A2:N709",col_names = TRUE) %>% 
   janitor::clean_names() %>% 
   filter(!is.na(dumpster)) %>%
-  mutate(year = as.integer(year),sports_balls = as.integer(round(sports_balls, 0)),trash_wheel="Mr. Trash Wheel")
+  mutate(year = as.integer(year),sports_balls = as.integer(round(sports_balls, 0)),trash_wheel = "Mr. Trash Wheel")
 ```
 Read and clean the Professor Trash Wheel
 ```{r}
@@ -110,13 +110,13 @@ zori_df = read_csv(file = "./zillow_data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.cs
          date = as.Date(date, format = "%Y_%m_%d"))  
 ```
 
-Import and clean zipcode data
+Import and clean zip code data
 ```{r}
 zip_df = read_csv(file = "./zillow_data/Zip Codes.csv",show_col_types = FALSE) %>% 
   janitor::clean_names() %>% 
-  mutate(file_date = as.Date(file_date, format = "%m/%d/%y"))%>% 
-  rename (borough = county)%>%
-  mutate( borough = recode (borough,
+  mutate(file_date = as.Date(file_date, format = "%m/%d/%y")) %>% 
+  rename(borough = county) %>%
+  mutate(borough = recode(borough,
                      "New York" = "Manhattan",
                      "Kings" = "Brooklyn",
                      "Richmond" = "Staten Island")
@@ -125,12 +125,12 @@ zip_df = read_csv(file = "./zillow_data/Zip Codes.csv",show_col_types = FALSE) %
 
 Join two datasets and reorder
 ```{r}
-tidy_df = left_join(zip_df,zori_df, by = "zip_code",relationship = "many-to-many") %>% 
+tidy_df = left_join(zori_df,zip_df, by = "zip_code",relationship = "many-to-many") %>% 
   select(region_id, zip_code,state,city,borough,neighborhood,date,zori,everything()) %>% 
   arrange(zip_code)
 ```
 
-The resulting tidy dataset has 17,687 observations and 15 columns. It includes `r n_distinct(tidy_df$zip_code)` unique ZIP codes and 
+The resulting tidy dataset has 17,516 observations and 15 columns. It includes `r n_distinct(tidy_df$zip_code)` unique ZIP codes and 
 `r n_distinct(tidy_df$neighborhood)` unique neighborhoods.
 
 ```{r}
